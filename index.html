@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Whiteboard - License Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Pro Whiteboard</h1>
+        <p class="text-center text-gray-500 mb-6">Official License Portal</p>
+
+        <div class="flex rounded-md shadow-sm mb-6" role="group">
+            <button type="button" id="btn-personal" onclick="setLicenseType('Personal')" class="w-1/2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-l-lg hover:bg-blue-700">
+                Personal
+            </button>
+            <button type="button" id="btn-enterprise" onclick="setLicenseType('Enterprise')" class="w-1/2 px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">
+                Enterprise / Education
+            </button>
+        </div>
+
+        <form id="licenseForm" onsubmit="submitForm(event)">
+            <input type="hidden" id="license-type" value="Personal">
+            
+            <div class="space-y-4">
+                <input type="text" id="name" placeholder="Full Name" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="email" id="email" placeholder="Email Address" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="tel" id="phone" placeholder="Phone Number" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <textarea id="address" placeholder="Residential Address" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+
+                <div id="enterprise-fields" class="hidden space-y-4 pt-2 border-t">
+                    <input type="text" id="business-name" placeholder="Business / School Name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="employee-count" placeholder="Number of Devices/Students" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6">
+                <div class="h-captcha" data-sitekey="d70a02d0-862e-448c-8c86-3cb0c7f25162"></div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-lg">
+                Generate License Key
+            </button>
+        </form>
+
+        <div id="success-screen" class="hidden mt-6 text-center border-t pt-6">
+            <h2 class="text-2xl font-bold text-green-600 mb-2">🎉 Success!</h2>
+            <p class="text-gray-600 mb-4">Your Pro Whiteboard License Key has been generated.</p>
+            
+            <div class="bg-gray-100 p-4 rounded-lg border-2 border-dashed border-gray-300 mb-4">
+                <p id="displayed-key" class="text-3xl font-mono font-bold text-gray-800 tracking-wider"></p>
+            </div>
+
+            <button id="download-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition-colors shadow-lg flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download License File (.txt)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function setLicenseType(type) {
+            document.getElementById('license-type').value = type;
+            const btnPersonal = document.getElementById('btn-personal');
+            const btnEnterprise = document.getElementById('btn-enterprise');
+            const enterpriseFields = document.getElementById('enterprise-fields');
+
+            if (type === 'Personal') {
+                btnPersonal.className = "w-1/2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-l-lg";
+                btnEnterprise.className = "w-1/2 px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100";
+                enterpriseFields.classList.add('hidden');
+                document.getElementById('business-name').required = false;
+                document.getElementById('employee-count').required = false;
+            } else {
+                btnEnterprise.className = "w-1/2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-r-lg";
+                btnPersonal.className = "w-1/2 px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100";
+                enterpriseFields.classList.remove('hidden');
+                document.getElementById('business-name').required = true;
+                document.getElementById('employee-count').required = true;
+            }
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+            
+            const captchaResponse = hcaptcha.getResponse();
+            if (!captchaResponse) {
+                alert("Please complete the Captcha to prove you are human!");
+                return;
+            }
+
+            const formData = {
+                type: document.getElementById('license-type').value,
+                email: document.getElementById('email').value,
+                captcha: captchaResponse
+            };
+
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+            btn.className = "w-full mt-6 bg-gray-400 text-white font-bold py-3 rounded-lg cursor-not-allowed transition-colors shadow-lg";
+
+            try {
+                // IMPORTANT: Replace this with your Vercel URL
+                const response = await fetch("https://prowhiteboard-api.vercel.app/api/apply", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+
+                if (response.ok && result.status === "success") {
+                    document.getElementById('licenseForm').classList.add('hidden');
+                    
+                    const successScreen = document.getElementById('success-screen');
+                    successScreen.classList.remove('hidden');
+                    
+                    document.getElementById('displayed-key').innerText = result.key;
+                    
+                    document.getElementById('download-btn').onclick = function() {
+                        downloadKeyFile(result.key);
+                    };
+                } else {
+                    alert("Error: " + (result.error || "Application failed."));
+                    resetFormState(btn);
+                }
+
+            } catch (error) {
+                alert("Error connecting to the server. Please try again later.");
+                resetFormState(btn);
+            }
+        }
+
+        function resetFormState(btn) {
+            btn.innerText = "Generate License Key";
+            btn.disabled = false;
+            btn.className = "w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors shadow-lg";
+            hcaptcha.reset();
+        }
+
+        function downloadKeyFile(key) {
+            const fileContent = "PRO WHITEBOARD OFFICIAL LICENSE\n================================\n\nLicense Key: " + key + "\n\nPlease keep this key secure. It will be bound to your device upon first use.\n\nType: " + document.getElementById('license-type').value + "\nRegistered to: " + document.getElementById('email').value;
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "ProWhiteboard_License.txt";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
